@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Offline_Accessible_Navigation_Project</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+     <style>  
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            font-family: sans-serif;
+        }   
+
+
+        #sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 100vh;
+            background-color: #ededeff6;
+            opacity: 0.95;
+            color: black;
+            z-index: 10;
+        }
+
+        #toggleBtn_1 {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            width: 30px;
+            height: 30px;
+            background: black;
+            border: none;
+            border-radius: 10%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            user-select: none;
+            line-height: 30px;
+            align-items: center;
+            justify-content: center;
+            display: flex;
+            padding: 0;
+            z-index: 20;
+        }
+
+        #toggleBtn_2 {
+            position: absolute;
+            bottom: 20px;
+            right: 25px;
+            width: 30px;
+            height: 30px;
+            background: black;
+            border: none;
+            border-radius: 10%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            user-select: none;
+            line-height: 30px;
+            align-items: center;
+            justify-content: center;
+            display: flex;
+            padding: 0;
+            z-index: 20;
+        }
+
+        #popLayer {
+            position: absolute;
+            bottom: 50px;
+            right: 25px;
+            width: 30px;
+            height: 150px;
+            background-color:white;
+            padding-bottom: 5px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            transform: scaleY(0);
+            transform-origin: bottom;
+            transition: transform 0.3s ease;
+            z-index: 15;
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-direction: column;
+            gap: 10px;
+            
+        }
+
+        #popLayer.active {
+            transform: scaleY(1);
+            opacity: 1;
+        }
+
+        .pair_1 {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .icon_1 {
+            width: 25px;
+            height: 25px;
+        }
+
+        .box {
+            width: 6px;
+            height: 6px;
+            border: 3px solid grey;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0s, color 0s;
+            user-select: none;
+        }
+
+        .box.selected {
+            background-color: grey;
+        }
+
+        #infoPanel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 80px;
+            background-color:white;
+            padding-top: 80px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            flex-direction: column;
+            gap: 50px;
+            z-index: 30;
+        }
+
+        #infoPanel.active {
+            transform: translateX(0);
+        }
+
+        .pair_2 {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon_2 {
+            width: 20px;
+            height: auto;
+        }
+
+        .cube {
+            width: 10px;
+            height: 10px;
+            border: 3px solid black;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0s, color 0s;
+            user-select: none;
+        }
+
+        .cube.selected {
+            background-color: black;
+        }
+        
+        .title {
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .label {
+            font-size: 10px;
+            font-weight: bold;
+            text-align: center;
+            
+        }
+
+        #closeBtn_1 {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: black;
+            line-height: 1;
+            padding: 0;
+            user-select: none;
+        }
+
+
+        #map_infoPanel {
+            position: fixed;
+            top: 0;
+            left: 80px;
+            height: 100vh;
+            width: 300px;
+            background-color:white;
+            padding: 0px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+            z-index: 10;   
+        }
+        
+        #map_infoPanel.active {
+            transform: translateY(0);
+        }
+
+        #closeBtn_2 {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: black;
+            line-height: 1;
+            padding: 0;
+            user-select: none;   
+        }
+
+        #coordinate-inputs {
+            position: fixed;
+            left: 100px;
+            width: 200px;
+            height: 80px;
+            background: transparent;
+            z-index: 40;
+        }
+
+        .input-row {
+            align-items: center;
+            justify-content: center;
+            display: flex;
+            margin-top: 10px;
+        }
+        
+        .input-box {
+            width: 200px;
+            height: 30px;
+            font-size: 15px;
+            border-radius: 5px;
+        }
+        
+        #map {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <button id = "toggleBtn_1">
+            <img src="icon/menu_icon.svg">
+        </button>
+        <button id = "toggleBtn_2">
+            <img src="icon/layer_icon.svg">
+        </button>
+        <div id="popLayer">
+            <div class="pair_1">
+                <img class="icon_1" src="icon/location_icon.svg">
+                <div class="box" data-index="1"></div>
+            </div>
+
+            <div class="pair_1">
+                <img class="icon_1" src="icon/bench_icon.svg">
+                <div class="box" data-index="2"></div>
+            </div>
+
+            <div class="pair_1">
+                <img class="icon_1" src="icon/stair_icon.svg">
+                <div class="box" data-index="3"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="infoPanel">
+        <button id = "closeBtn_1">×</button>
+        <span class="title">Impassable Path Layer</span>
+        <div class="pair_2">
+            <div class="cube" data-index="1"></div>
+            <img class="icon_1" src="icon/line1_icon.svg">   
+        </div>
+        <span class="label">[Slope Issue]</span>
+
+        <div class="pair_2">
+            <div class="cube" data-index="2"></div>
+            <img class="icon_1" src="icon/line2_icon.svg">
+        </div>
+        <span class="label">[Width Issue]</span>
+
+        <div class="pair_2">
+            <div class="cube" data-index="3"></div>
+            <img class="icon_1" src="icon/line3_icon.svg">
+        </div>
+        <span class="label">[Step Issue]</span>
+
+        <div class="pair_2">
+            <div class="cube" data-index="4"></div>
+            <img class="icon_1" src="icon/line4_icon.svg">
+        </div>
+        <span class="label">[Path Issue]</span>
+    </div>
+
+    <div id="map_infoPanel">
+        <div id="map_infoContent"></div>
+        <button id = "closeBtn_2">×</button>
+    </div>
+
+    <div id="coordinate-inputs">
+        <div class = "input-row">
+            <input type="text" id="startpoint" class="input-box" placeholder="Click map to select start ..." readonly />
+        </div>
+        <div class = "input-row">
+            <input type="text" id="endpoint" class="input-box" placeholder="Click map to select end ..." readonly />
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+     <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+     <script>
+        var map = L.map('map',{
+            zoomControl: false
+        }).setView([55.870, -4.286], 16);
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        L.control.zoom({
+            position:'bottomright'
+        }).addTo(map);
+
+        L.Control.geocoder().addTo(map);
+
+        L.control.locate({
+            position:'bottomright',
+            flyTo: true
+        }).addTo(map);
+
+        let poi_map = {};
+        let lastClickedLayer = null;
+        const allPoiMarkers = [];
+
+        function onEachFeature(feature, layer) {
+            layer.setIcon(poi_icon)
+            allPoiMarkers.push(layer);
+
+            layer.on('click', function() {
+                if (lastClickedLayer && lastClickedLayer !== layer) {
+                    lastClickedLayer.setIcon(poi_icon);
+                }
+
+                layer.setIcon(poi_click_icon);
+                lastClickedLayer = layer;
+
+
+                const map_infoPanel = document.getElementById('map_infoPanel');
+                const props = feature.properties;
+                const imagepath = `poi_photo/${props.POI_IMG}`;
+                const infocontent = `
+                <div>
+                    <div style="width: 100%; height: 250px; overflow: hidden;">
+                        <img src = "${imagepath}" style="width: 100%; height: 100%; object-fit: cover;"/>
+                    </div>
+                    <div style="display: flex-direction:column;">
+                        <div style="padding-top: 20px; padding-left: 15px; padding-right: 15px; font-size: 25px; font-weight: bold;">
+                            ${props.POI_NAME}
+                        </div>
+                        <div style="padding-top: 20px; padding-left: 15px; padding-right: 15px; font-size: 12px; display:flex; flex-direction: column; gap: 15px; ">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <img src="icon/type.svg" style="width:25px; height:25px;" />
+                                <span>${props.POI_TYPE}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <img src="icon/location_icon.svg" style="width:25px; height:25px;" />
+                                <span>${props.POI_ADDRESS}</span>
+                            </div>
+                        </div>
+                        <div style="height: 1px; background-color: #ccc; margin-top: 25px;">
+                        </div>
+                        <div style="padding-top: 25px; padding-left: 15px; padding-right: 15px; font-size: 15px; font-weight: bold; text-align: justify;">
+                            ${props.POI_DESCRIPTION}
+                        </div>
+                    </div>
+                </div>
+                `;
+                const contentDiv = document.getElementById('map_infoContent');
+                contentDiv.innerHTML = infocontent;
+                map_infoPanel.classList.add('active');
+            });
+        }
+
+        function bindPopupToLayer(feature,layer) {
+            const props = feature.properties;
+            const imagepath = `poi_photo/${props.POI_IMG}`;
+            const popupcontent = `
+            <div>
+                <div style="width: 100%; height: 100px; overflow: hidden;">
+                    <img src = "${imagepath}" style="width: 100%; height: 100%; object-fit: cover;"/>
+                </div>
+                <div style="display: flex-direction:column;">
+                    <div style="padding-top: 5px; padding-left: 5px; padding-right: 5px; font-size: 15px; font-weight: bold;">
+                        ${props.POI_NAME}
+                    </div>
+                    <div style="padding-left: 5px; padding-right: 5px; font-size: 10px;">
+                        <div style="padding-top: 10px; display: flex; align-items: center; gap: 5px;">
+                        <img src="icon/type.svg" style="width:15px; height:15px;" />
+                        <span>${props.POI_TYPE}</span>
+                        </div>
+                        <div style="padding-top: 5px;display: flex; align-items: center; gap: 5px;">
+                        <img src="icon/location_icon.svg" style="width:15px; height:15px;" />
+                        <span>${props.POI_ADDRESS}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+
+            layer.on('mouseover', function(){
+                layer.bindPopup(popupcontent).openPopup();
+            });
+            layer.on('mouseout', function(){
+                layer.closePopup();
+            });
+        }
+
+        function combined(feature,layer){
+            onEachFeature(feature,layer);
+            bindPopupToLayer(feature,layer);
+        }
+
+        function build_poi(poi_geojson) {
+            const poi = {};
+            poi_geojson.features.forEach(feature => {
+                const point_id = feature.properties.POINTID;
+                const [lng,lat] = feature.geometry.coordinates;
+                poi[point_id] = {lat,lng};
+                });
+            return poi;
+        }
+
+        const poi_icon = L.icon({
+            iconUrl: 'icon/poi_icon.svg',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        const poi_click_icon = L.icon({
+            iconUrl: 'icon/poi_click_icon.svg',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        let poi_layer = null;
+
+        fetch('data/poi.geojson')
+            .then(res => res.json())
+            .then(poi_data => {
+                poi_layer = L.geoJSON(poi_data, {
+                    pointToLayer: function(feature, latlng) {
+                        return L.marker(latlng);
+                    },
+                    onEachFeature: combined
+                });
+
+                poi_map = build_poi(poi_data);
+                console.log(poi_map);
+            })
+            .catch(err => console.error(err));
+
+
+
+
+
+        function handleBoxClick(event) {
+            const box = event.currentTarget;
+            const index = box.getAttribute('data-index');
+            box.classList.toggle('selected');
+
+            if(index === "1") {
+                togglePoiLayer(box.classList.contains('selected'));
+            } else if (index === "2") {
+                toggleBenLayer(box.classList.contains('selected'));
+            } else if (index === "3") {
+                toggleSteLayer(box.classList.contains('selected'));
+            }
+        }
+
+        function togglePoiLayer(show) {
+            if(show) {
+                if (poi_layer && !map.hasLayer(poi_layer)) {
+                    poi_layer.addTo(map);
+                }
+            } else {
+                if (poi_layer && map.hasLayer(poi_layer)) {
+                    map.removeLayer(poi_layer);
+                }
+            }
+        }
+
+        function toggleBenLayer(show) {
+            if(show) {
+                if (bench_layer && !map.hasLayer(bench_layer)) {
+                    bench_layer.addTo(map);
+                }
+            } else {
+                if (bench_layer && map.hasLayer(bench_layer)) {
+                    map.removeLayer(bench_layer);
+                }
+            }
+        }
+
+        function toggleSteLayer(show) {
+            if(show) {
+                if (step_layer && !map.hasLayer(step_layer)) {
+                    step_layer.addTo(map);
+                }
+            } else {
+                if (step_layer && map.hasLayer(step_layer)) {
+                    map.removeLayer(step_layer);
+                }
+            }
+        }
+
+        document.querySelectorAll('.box').forEach(box => {
+            box.addEventListener('click', handleBoxClick);
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+        function handleCubeClick(event) {
+            const cube = event.currentTarget;
+            const index = cube.getAttribute('data-index');
+            cube.classList.toggle('selected');
+
+            if(index === "1") {
+                toggleSlopeLayer(cube.classList.contains('selected'));
+            } else if (index === "2") {
+                toggleWidthLayer(cube.classList.contains('selected'));
+            } else if (index === "3") {
+                toggleStepLayer(cube.classList.contains('selected'));
+            } else if (index === "4") {
+                togglePathLayer(cube.classList.contains('selected'));
+            }
+        }
+
+        function toggleSlopeLayer(show) {
+            if(show) {
+                if (slope_inaccessible && !map.hasLayer(slope_inaccessible)) {
+                    slope_inaccessible.addTo(map);
+                }
+            } else {
+                if (slope_inaccessible && map.hasLayer(slope_inaccessible)) {
+                    map.removeLayer(slope_inaccessible);
+                }
+            }
+        }
+
+        function toggleWidthLayer(show) {
+            if(show) {
+                if (width_inaccessible && !map.hasLayer(width_inaccessible)) {
+                    width_inaccessible.addTo(map);
+                }
+            } else {
+                if (width_inaccessible && map.hasLayer(width_inaccessible)) {
+                    map.removeLayer(width_inaccessible);
+                }
+            }
+        }
+
+        function toggleStepLayer(show) {
+            if(show) {
+                if (step_inaccessible && !map.hasLayer(step_inaccessible)) {
+                    step_inaccessible.addTo(map);
+                }
+            } else {
+                if (step_inaccessible && map.hasLayer(step_inaccessible)) {
+                    map.removeLayer(step_inaccessible);
+                }
+            }
+        }
+
+        function togglePathLayer(show) {
+            if(show) {
+                if (path_inaccessible && !map.hasLayer(path_inaccessible)) {
+                    path_inaccessible.addTo(map);
+                }
+            } else {
+                if (path_inaccessible && map.hasLayer(path_inaccessible)) {
+                    map.removeLayer(path_inaccessible);
+                }
+            }
+        }
+
+        document.querySelectorAll('.cube').forEach(cube => {
+            cube.addEventListener('click', handleCubeClick);
+        });
+
+        let slope_inaccessible = null;
+
+        fetch('data/slope_inaccessible.geojson')
+            .then(res => res.json())
+            .then(slope_inaccessible_data => {
+                slope_inaccessible = L.geoJSON(slope_inaccessible_data, {
+                    style: {
+                        color: '#0072B2',
+                        weight: 3
+                    }
+            });
+        })
+        .catch(err => console.error(err));
+
+        let width_inaccessible = null;
+
+        fetch('data/width_inaccessible.geojson')
+            .then(res => res.json())
+            .then(width_inaccessible_data => {
+                width_inaccessible = L.geoJSON(width_inaccessible_data, {
+                    style: {
+                        color: '#E69F00',
+                        weight: 3
+                    }
+            });
+        })
+        .catch(err => console.error(err));
+
+        let step_inaccessible = null;
+
+        fetch('data/step_inaccessible.geojson')
+            .then(res => res.json())
+            .then(step_inaccessible_data => {
+                step_inaccessible = L.geoJSON(step_inaccessible_data, {
+                    style: {
+                        color: '#CC79A7',
+                        weight: 3
+                    }
+            });
+        })
+        .catch(err => console.error(err));
+
+        let path_inaccessible = null;
+
+        fetch('data/path_inaccessible.geojson')
+            .then(res => res.json())
+            .then(path_inaccessible_data => {
+                path_inaccessible = L.geoJSON(path_inaccessible_data, {
+                    style: {
+                        color: '#F0E442',
+                        weight: 3
+                    }
+            });
+        })
+        .catch(err => console.error(err));
+
+
+        let bench_layer = null;
+        let bench_map = {};
+
+        function build_bench(bench_geojson) {
+            const bench = {};
+            bench_geojson.features.forEach(feature => {
+                const point_id = feature.properties.POINTID;
+                const [lng,lat] = feature.geometry.coordinates;
+                bench[point_id] = {lat,lng};
+                });
+            return bench;
+        }
+        
+        fetch('data/bench.geojson')
+            .then(res => res.json())
+            .then(bench_data => {
+                bench_layer = L.geoJSON(bench_data, {
+                    pointToLayer: function(feature,latlng) {
+                        return L.circleMarker(latlng, {
+                            radius: 2.5,
+                            fillColor: "orange",
+                            color: "black",
+                            weight: 1,
+                            opacity: 1,
+                            fillOpacity: 1
+                        });
+                    },
+                    onEachFeature: function (feature, layer) {
+                        const bench_id = feature.properties.Name;
+
+                        layer.bindTooltip(`Bench_ID: ${bench_id}`, {
+                            permanent: false,
+                            direction: "top",
+                            offset: [0, -5]
+                        });
+                    }
+                });
+
+                bench_map = build_bench(bench_data);
+                console.log(bench_map);
+            })
+            .catch(err => console.error(err));
+        
+
+
+        const step_icon = L.icon({
+            iconUrl: 'icon/warning.svg',
+            iconSize: [40, 40],
+            iconAnchor: [20, 20]
+        });
+
+        let step_layer = null;
+        let step_map = {};
+
+        function build_step(step_geojson) {
+            const step = {};
+            step_geojson.features.forEach(feature => {
+                const point_id = feature.properties.STEPID;
+                const [lng,lat] = feature.geometry.coordinates;
+                step[point_id] = {lat,lng};
+                });
+            return step;
+        }
+        
+        fetch('data/steps.geojson')
+            .then(res => res.json())
+            .then(step_data => {
+                step_layer = L.geoJSON(step_data, {
+                    pointToLayer: function(feature,latlng) {
+                        return L.marker(latlng, {icon: step_icon});
+                    },
+                    onEachFeature: function (feature, layer) {
+                        const step_id = feature.properties.STEP_ID;
+
+                        layer.bindTooltip(`STEP_ID: ${step_id}`, {
+                            permanent: false,
+                            direction: "top",
+                            offset: [0, -5]
+                        });
+                    }
+                });
+
+                step_map = build_step(step_data);
+                console.log(step_map);
+            })
+            .catch(err => console.error(err));
+
+
+
+        let nodecoord_map = {};
+
+        function build_nodecoord(nodes_geojson) {
+            const nodecoord = {};
+            nodes_geojson.features.forEach(feature => {
+                const point_id = feature.properties.POINTID;
+                const [lng,lat] = feature.geometry.coordinates;
+                nodecoord[point_id] = {lat,lng};
+                });
+            return nodecoord;
+        }
+        
+        fetch('data/nodes.geojson')
+            .then(res => res.json())
+            .then(nodes_data => {
+                L.geoJSON(nodes_data, {
+                    pointToLayer: function(feature,latlng) {
+                        return L.circleMarker(latlng, {
+                            radius:5,
+                            fillColor: "black",
+                            color: "white",
+                            fillOpacity: 1,
+                            opacity: 1,
+                            weight: 1.5
+                        });
+                    }
+                }).addTo(map);
+
+                nodecoord_map = build_nodecoord(nodes_data);
+                console.log(nodecoord_map);
+            })
+            .catch(err => console.error(err));
+
+
+        let graph_structure = {};
+
+        function build_graph(paths_geojson) {
+            const graph = {};
+            paths_geojson.features.forEach(feature => {
+                const {START_POINTID, END_POINTID, cost} = feature.properties;
+                if (cost === 9999) return;
+                const geometry = feature.geometry;
+                if (!graph[START_POINTID]) graph[START_POINTID] = [];
+                if (!graph[END_POINTID]) graph[END_POINTID] = [];
+                graph[START_POINTID].push({END_POINTID, cost, geometry});
+                graph[END_POINTID].push({START_POINTID, cost, geometry});
+            });
+            return graph;
+        }
+
+        fetch('data/paths_without.geojson')
+            .then(res => res.json())
+            .then(paths_data => {
+                L.geoJSON(paths_data,{
+                    style: {
+                        color:"black",
+                        weight: 3,
+                        opacity: 1   
+                    }
+                }).addTo(map);
+        
+                graph_structure = build_graph(paths_data);
+                console.log(graph_structure);
+            })
+            .catch(err => console.error(err));
+
+
+        function to_radians(degrees) {
+            const radians = (degrees * Math.PI)/180;
+            return radians;
+        }
+
+        function cal_distance(point1, point2) {
+            const r = 6371000;
+            const φ1 = to_radians(point1.lat);
+            const φ2 = to_radians(point2.lat);
+            const Δφ = to_radians(point2.lat - point1.lat);
+            const Δλ = to_radians(point2.lng - point1.lng);
+            const a = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = r * c;
+            return distance;
+        }
+
+        function find_nearestnode(click_point, nodecoord) {
+            let nearestnode_id = null;
+            let distance_min = Infinity;
+
+            for (const [node_id, coordinates] of Object.entries(nodecoord)) {
+                const dist = cal_distance(click_point, coordinates);
+                if (dist < distance_min) {
+                    distance_min = dist;
+                    nearestnode_id = node_id;
+                }
+            }
+            return nearestnode_id;
+        }
+
+        function dijkstra(graph, start_node, end_node) {
+            const distance_min = {};
+            const node_track = {};
+            const node_unvisit = new Set(Object.keys(graph));
+
+            for (const node of node_unvisit) {
+                distance_min[node] = Infinity;
+            }
+            distance_min[start_node] = 0;
+
+            while (node_unvisit.size) {
+                let node_select = null;
+                for (const node of node_unvisit) {
+                    if (node_select === null || distance_min[node] < distance_min[node_select]) {
+                        node_select = node;
+                    }
+                }
+
+                if (node_select === end_node || distance_min[node_select] === Infinity) break;
+
+                node_unvisit.delete(node_select);
+
+                for (const path_neighbor of graph[node_select] || []) {
+                    const distance_new = distance_min[node_select] + path_neighbor.cost;
+                    if (distance_new < distance_min[path_neighbor.END_POINTID]) {
+                        distance_min[path_neighbor.END_POINTID] = distance_new;
+                        node_track[path_neighbor.END_POINTID] = node_select;
+                    }
+                }
+            }
+
+            const path = [];
+
+            let node_current = end_node;
+
+            while (node_current) {
+                path.unshift(node_current);
+                node_current = node_track[node_current];
+            }
+            if (path[0] !== start_node) return[];
+            return path;
+        }
+        
+        function extract_path(path,graph) {
+            
+            const edgecoords = [];
+
+            for (let i =0; i < path.length - 1; i++) {
+                const from = path[i];
+                const to = path[i+1];
+                const edge = graph[from].find(event => event.END_POINTID === to);
+               
+                if (!edge|| !edge.geometry) {
+                    console.warn(`Missing geometry for edge ${from} → ${to}`);
+                    continue;
+                }
+
+                let segment_coords = edge.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+                if (i > 0) segment_coords.shift();
+                edgecoords.push(...segment_coords);
+            }
+            return edgecoords;
+        }
+
+        let line = null;
+        let clickCount = 0;
+        let node_select = [];
+        let currentNearestMarker = null;
+
+        function draw_path(linecoords) {
+            if(line) {
+                map.removeLayer(line);
+                line = null;
+            }
+            if(!linecoords || linecoords.length === 0) {
+                alert('NO PATH FOUND');
+                return;
+            }
+            line = L.polyline(linecoords, { color: 'orange', weight: 5}).addTo(map);
+            map.fitBounds(line.getBounds());
+        }
+        
+        const click_icon = L.icon({
+            iconUrl: 'icon/circle_icon.svg',     
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+
+        let startMarker = null;
+        let endMarker = null;
+
+        map.on('click', event => {
+            const nearestnode = find_nearestnode(event.latlng, nodecoord_map);
+            if (!nearestnode) {
+                console.warn("No nearest node found");
+                return;
+            }
+
+            if (clickCount === 0) {
+                node_select = [nearestnode];
+                document.getElementById('startpoint').value = nearestnode;
+                clickCount = 1;
+                console.log('Start node selected:', nearestnode);
+
+                const coord = nodecoord_map[nearestnode];
+                const latlng = L.latLng(coord.lat, coord.lng);
+
+                if (startMarker) map.removeLayer(startMarker);
+                startMarker = L.marker(latlng, { icon: click_icon }).addTo(map);
+                
+
+            } else if (clickCount === 1) {
+                node_select.push(nearestnode);
+                document.getElementById('endpoint').value = nearestnode;
+                clickCount = 2;
+                console.log('End node selected:', nearestnode);
+
+                const coord = nodecoord_map[nearestnode];
+                const latlng = L.latLng(coord.lat, coord.lng);
+
+                if (endMarker) map.removeLayer(endMarker);
+                endMarker = L.marker(latlng, { icon: click_icon }).addTo(map);
+
+                const [start, end] = node_select;
+                const path = dijkstra(graph_structure, start, end);
+                const coords = extract_path(path, graph_structure);
+                draw_path(coords);
+            } else {
+        
+                if (line) {
+                    map.removeLayer(line);
+                    line = null;
+                }
+                if (startMarker) {
+                    map.removeLayer(startMarker);
+                    startMarker = null;
+                }
+                if (endMarker) {
+                    map.removeLayer(endMarker);
+                    endMarker = null;
+                }
+                document.getElementById('startpoint').value = '';
+                document.getElementById('endpoint').value = '';
+                node_select = [];
+                clickCount = 0;
+                console.log('Reset after third click');
+            }
+        });
+
+
+        map.on('locationfound', function(e) {
+            const currentLatLng = {
+                lat: e.latitude,
+                lng: e.longitude
+            };
+            const nearestNode = find_nearestnode(currentLatLng, nodecoord_map);
+            const nearestCoord = nodecoord_map[nearestNode];
+        
+            if (currentNearestMarker) {
+                map.removeLayer(currentNearestMarker);
+            }
+            currentNearestMarker = L.circleMarker([nearestCoord.lat, nearestCoord.lng], {
+                radius: 5,
+                color: 'yellow',
+                fillColor: 0,
+            }).addTo(map);
+        });
+
+        const infoPanel = document.getElementById('infoPanel');
+        const map_infoPanel = document.getElementById('map_infoPanel');
+        const popLayer = document.getElementById('popLayer');
+        const toggleBtn_1 = document.getElementById('toggleBtn_1');
+        const toggleBtn_2 = document.getElementById('toggleBtn_2');
+        const closeBtn_1 = document.getElementById('closeBtn_1');
+        const closeBtn_2 = document.getElementById('closeBtn_2');
+        
+        toggleBtn_1.addEventListener('click', () => {
+            infoPanel.classList.toggle('active');
+        });
+
+        toggleBtn_2.addEventListener('click', () => {
+            popLayer.classList.toggle('active');
+        });
+
+        closeBtn_1.addEventListener('click', () => {
+            infoPanel.classList.remove('active');
+        });
+
+        closeBtn_2.addEventListener('click', () => {
+            allPoiMarkers.forEach(marker => {
+            marker.setIcon(poi_icon);
+        });
+            lastClickedLayer = null;
+            map_infoPanel.classList.remove('active');
+        });
+    
+    
+    </script>
+</body>
+</html>
